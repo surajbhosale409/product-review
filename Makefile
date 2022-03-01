@@ -4,6 +4,7 @@ SHELL = /bin/sh
 
 tools:
 	sh -c "$$(wget -O - -q https://install.goreleaser.com/github.com/golangci/golangci-lint.sh || echo exit 2)" -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
+	go build -o build/seed-db tools/seed-db.go
 
 lint:
 	golangci-lint run ./...
@@ -35,7 +36,13 @@ image:
 	docker build -t product-review:latest .
 
 up:
-	docker-compose up
+	docker-compose up -d
 
 down:
 	docker-compose down
+
+seed-db: tools up
+	build/seed-db
+
+run: build up
+	build/product-review serve

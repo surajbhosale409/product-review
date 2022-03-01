@@ -1,24 +1,39 @@
 package cmd
 
 import (
+	"errors"
 	service "product-review"
 
 	"github.com/caarlos0/env/v6"
+	"github.com/joho/godotenv"
 	"github.com/labstack/gommon/log"
 	"github.com/spf13/cobra"
 )
 
-var defaultConfig = &service.Config{}
-
-func initialise() (svc *service.Service, err error) {
+func initialise() (s *service.Service, err error) {
 	log.Info("Initialising service")
 	cfg := &service.Config{}
 
+	if err = godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	if err = env.Parse(cfg); err != nil {
 		return nil, err
 	}
 
-	if svc, err = service.NewService(cfg); err != nil {
+	if cfg.Username == "" || cfg.Password == "" {
+		return nil, errors.New("ENV variables PR_USERNAME, PR_PASSWORD must be configured for basic auth")
+	}
+
+	if cfg.MongoDBURL == "" {
+		cfg.MongoDBURL = "mongodb://localhost:27017"
+	}
+
+	if cfg.MongoDBName == "" {
+		cfg.MongoDBName = "product-review"
+	}
+
+	if s, err = service.NewService(cfg); err != nil {
 		return nil, err
 	}
 	return

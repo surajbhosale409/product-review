@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+  mongo_db:
+    image: "mongo:latest"
+    ports:
+      - "0.0.0.0:27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+  
+  # uncomment below lines to deploy app inside docker container
+  # product_review:
+    # image: "product-review:latest"
+    # environment:
+    #   - PR_USERNAME=${PR_USERNAME}
+    #   - PR_PASSWORD=${PR_PASSWORD}
+    #   - MONGODB_URL=${MONGODB_URL}
+    #   - MONGODB_NAME=${MONGODB_NAME}
+    # ports:
+    #   - "0.0.0.0:80:80"
+    # depends_on:
+    #   - mongo_db
+
+volumes:
+  mongodb_data:
+
+networks:
+  product_review:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.238.0/24

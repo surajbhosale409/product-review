@@ -4,7 +4,8 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-func (svc *Service) AddRoutes() {
-	authenticated := svc.e.Group("/api", middleware.BasicAuth(Auth), middleware.Logger())
-	authenticated.GET("/products", svc.GetProductsHandler)
+func (s *Service) AddRoutes() {
+	authenticated := s.e.Group("/api", middleware.BasicAuth(s.Auth), middleware.Logger())
+	authenticated.GET("/products", s.GetProductsHandler)
+	authenticated.POST("/products/:id/reviews", s.AddReviewHandler)
 }

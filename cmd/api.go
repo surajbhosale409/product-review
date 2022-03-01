@@ -15,11 +15,11 @@ var APICmd = &cobra.Command{
 }
 
 func executeAPICmd(cmd *cobra.Command, args []string) {
-	var svc *service.Service
+	var s *service.Service
 	var err error
 
-	if svc, err = initialise(); err != nil {
+	if s, err = initialise(); err != nil {
 		log.Fatal(err.Error())
 	}
-	svc.Serve()
+	s.Serve()
 }
