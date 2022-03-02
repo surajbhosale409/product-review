@@ -76,7 +76,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:80/api/products/3350861610/reviews",
+					"raw": "http://localhost:80/api/products/1350196991/reviews",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -85,7 +85,7 @@
 					"path": [
 						"api",
 						"products",
-						"3350861610",
+						"1350196991",
 						"reviews"
 					]
 				}

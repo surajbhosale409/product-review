@@ -116,6 +116,8 @@ Project has a `.env` file containing sample/default config values which can be u
 `make up` will bring up the docker-compose stack for other dependent services, currently product-review depends on mongodb service for database
 
 `make seed-db` can be used to seed the database with some initial product data for test purpose.
+Go script for seeding the database is provided in `tools/seed-db.go`. It can be changed for testing with different 
+datasets.
 
 `make run` will run the dependent services in docker-compose stack and will start the `product-review` service locally.
 
@@ -127,5 +129,5 @@ To perform e2e API tests, sample postman client requests can be found under `too
 ## Code quality  pre-commit/preps:
 
 Makefile also contains a few commands for 
-`lint, vet, fmt` code
+`lint, vet, fmt`
 

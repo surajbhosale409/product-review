@@ -12,7 +12,7 @@ import (
 
 type Review struct {
 	ReviewerName  string `json:"reviewer_name" bson:"reviewer_name"`
-	WrittenReview string `json:"written_review" bson:"written_review"`
+	WrittenReview string `json:"written_review,omitempty" bson:"written_review"`
 	Rating        *int   `json:"rating" bson:"rating"`
 }
 
@@ -42,18 +42,25 @@ func validateReview(review *Review) error {
 	return nil
 }
 
-func getAverageRating(reviews []*Review) int {
-	sum := 0
-	len := 0
+// TODO: need to handle this in mongo using aggregates
+func getAverageRating(reviews []*Review) (sum int) {
+
+	l := len(reviews)
+	if l == 0 {
+		return
+	}
 
 	for _, review := range reviews {
 		sum += *review.Rating
-		len++
 	}
 
-	return sum / len
+	if sum == 0 {
+		return 0
+	}
+	return sum / l
 }
 
+// AddReviewHandler serves the API requests for adding review to a product
 func (s *Service) AddReviewHandler(c echo.Context) (err error) {
 
 	review := &Review{}
@@ -69,20 +76,12 @@ func (s *Service) AddReviewHandler(c echo.Context) (err error) {
 		})
 	}
 
-	var product Product
-
 	id, _ := strconv.Atoi(c.Param("id"))
-	if product, err = s.FindProductByID(id); err != nil {
-		log.Error(err)
-		return c.JSON(http.StatusBadRequest, Error{
-			Message: err.Error(),
-		})
+	update := bson.D{
+		{"$push", bson.D{{"reviews", review}}},
 	}
 
-	product.Reviews = append(product.Reviews, review)
-	update := bson.D{{"$set", bson.D{{"reviews", product.Reviews}, {"overall_rating", getAverageRating(product.Reviews)}}}}
-
-	if err = s.UpdateProductByID(id, update); err != nil {
+	if _, err = s.UpdateProductByID(id, update); err != nil {
 		log.Error(err)
 		return c.JSON(http.StatusBadRequest, Error{
 			Message: err.Error(),

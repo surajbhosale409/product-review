@@ -48,6 +48,7 @@ func populateDB() {
 			ID:          int(id),
 			Name:        random.New().String(5),
 			Description: random.New().String(20),
+			Reviews:     make([]*Review, 0),
 		}
 
 		products = append(products, product)

@@ -17,23 +17,31 @@ type Product struct {
 	ID              int       `json:"id" bson:"id"`
 	Name            string    `json:"name" bson:"name"`
 	Description     string    `json:"description" bson:"description"`
-	ThumbnailImgURL string    `json:"thumbnail_img_url" bson:"thumbnail_img_url"`
+	ThumbnailImgURL string    `json:"thumbnail_img_url,omitempty" bson:"thumbnail_img_url"`
 	OverallRating   int       `json:"overall_rating" bson:"overall_rating"`
 	Reviews         []*Review `json:"reviews,omitempty" bson:"reviews"`
 }
 
+// FindProductByID finds and returns a product with given id
 func (s *Service) FindProductByID(id int) (product Product, err error) {
 	filter := bson.M{"id": id}
 	err = s.ProductCollection.FindOne(context.TODO(), filter).Decode(&product)
 	return
 }
 
-func (s *Service) UpdateProductByID(id int, update primitive.D) (err error) {
+// UpdateProductByID updates product with given id and update params
+func (s *Service) UpdateProductByID(id int, update primitive.D) (product Product, err error) {
 	filter := bson.M{"id": id}
-	_, err = s.ProductCollection.UpdateOne(context.TODO(), filter, update)
+	err = s.ProductCollection.FindOneAndUpdate(
+		context.TODO(),
+		filter,
+		update,
+		options.FindOneAndUpdate().SetReturnDocument(1),
+	).Decode(&product)
 	return
 }
 
+// FindProducts filters the product based on given name pattern, also supports pagination
 func (s *Service) FindProducts(name string, limit, skip int) (products []*Product, err error) {
 	products = make([]*Product, 0)
 
@@ -61,12 +69,13 @@ func (s *Service) FindProducts(name string, limit, skip int) (products []*Produc
 	}
 
 	for cur.Next(context.TODO()) {
-		// create a value into which the single document can be decoded
 		var elem Product
 		err := cur.Decode(&elem)
 		if err != nil {
 			log.Fatal(err)
 		}
+		// TODO: remove once aggregation is handled by mongodb
+		elem.OverallRating = getAverageRating(elem.Reviews)
 		elem.Reviews = nil
 		products = append(products, &elem)
 	}
@@ -75,11 +84,11 @@ func (s *Service) FindProducts(name string, limit, skip int) (products []*Produc
 		return nil, err
 	}
 
-	// Close the cursor once finished
 	cur.Close(context.TODO())
 	return
 }
 
+// GetProductsHandler serves API requests for getting products using filters and pagination options
 func (s *Service) GetProductsHandler(c echo.Context) (err error) {
 	var products []*Product
 	queryParams := c.QueryParams()
